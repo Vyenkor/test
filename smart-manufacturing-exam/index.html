@@ -112,6 +112,8 @@
       <li>主页移除了答题区域</li>
       <li>增加自定义区间顺序乱序答题</li>
       <li>增加上一题功能</li>
+      <li>本模板开源地址https://github.com/Vyenkor/test上(使用请点亮star)</li>
+      <li>网页将会在11月15日后失效如有答题需要请自行导入题库使用模板</li>
     </ul>
   </div>
   <div id="signature-area">
@@ -561,7 +563,7 @@
             html += `<div class="option"><label><input type="${inputType}" name="answer" value="${opt.label}"> ${opt.label}、${text}</label></div>`;
           });
         }
-        html += `</div><div class="buttons"><button id="submitBtn">提交答案</button><button id="retryBtn" class="hidden">再试一次</button><button id="prevBtn" class="hidden">上一题</button><button id="nextBtn" class="hidden">下一题</button><button id="removeWrongBtn" class="hidden">从错题本中移除</button></div><div id="feedback" class="feedback"></div></div>`;
+        html += `</div><div class="buttons"><button id="prevBtn" class="hidden">上一题</button><button id="retryBtn" class="hidden">再试一次</button><button id="submitBtn">提交答案</button><button id="nextBtn" class="hidden">下一题</button><button id="removeWrongBtn" class="hidden">从错题本中移除</button></div><div id="feedback" class="feedback"></div></div>`;
         contentEl.innerHTML = html;
         const submitBtn = document.getElementById('submitBtn');
         const retryBtn = document.getElementById('retryBtn');
