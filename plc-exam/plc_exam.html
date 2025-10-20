@@ -24,8 +24,6 @@
     .feedback.incorrect { color: #e53935; }
     
     .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #f5f5f5; border-top: 1px solid #ddd; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-    .bottom-bar button { margin-left: 8px; padding: 6px 12px; border: 1px solid #3f51b5; border-radius: 4px; background: #3f51b5; color: white; cursor: pointer; font-size: 0.9rem; }
-    .bottom-bar button:hover { opacity: 0.9; }
     .hidden { display: none; }
     
     @media (max-width: 600px) {
@@ -70,12 +68,11 @@
     <h1>PLC等级理论考试</h1>
   </header>
   <nav>
-    <button id="tabSequential" class="active">顺序刷题</button>
-    <button id="tabModes">练习模式</button>
+    <button id="tabQuiz" class="active">答题区</button>
     <button id="tabWrong">错题本</button>
   </nav>
 
-  <div id="main-menu" class="hidden">
+  <div id="main-menu">
     <div id="top-actions"></div>
     <div class="signature-area">
       <p>vyen</p>
@@ -84,9 +81,9 @@
     </div>
   </div>
 
-  <div id="content"></div>
+  <div id="content" class="hidden"></div>
   
-  <div class="bottom-bar">
+  <div class="bottom-bar hidden">
     <div id="progress">&nbsp;</div>
   </div>
 
@@ -101,15 +98,14 @@
       
       const contentEl = document.getElementById('content');
       const progressEl = document.getElementById('progress');
-      const tabSequentialBtn = document.getElementById('tabSequential');
-      const tabModesBtn = document.getElementById('tabModes');
+      const tabQuizBtn = document.getElementById('tabQuiz');
       const tabWrongBtn = document.getElementById('tabWrong');
       const topActionsEl = document.getElementById('top-actions');
       const mainMenuEl = document.getElementById('main-menu');
       const bottomBarEl = document.querySelector('.bottom-bar');
-      const navEl = document.querySelector('nav');
       
       const originalTopActionsHTML = `
+        <button id="defaultPracticeBtn">默认刷题</button>
         <button id="random50Btn">随机50题</button>
         <button id="random100Btn">随机100题</button>
         <button id="intervalSequentialBtn">区间顺序</button>
@@ -125,9 +121,7 @@
       let sessionHistory = JSON.parse(localStorage.getItem('plc1_sessionHistory') || '[]');
 
       function setActiveTab(activeTab) {
-          [tabSequentialBtn, tabModesBtn, tabWrongBtn].forEach(tab => {
-              tab.classList.remove('active');
-          });
+          [tabQuizBtn, tabWrongBtn].forEach(tab => tab.classList.remove('active'));
           activeTab.classList.add('active');
       }
 
@@ -143,49 +137,29 @@
 
       document.body.addEventListener('click', (event) => {
         const btn = event.target.closest('button');
-        if (!btn) return;
-        if (topActionsEl.contains(btn)) {
-            switch (btn.id) {
-              case 'random50Btn': startFixedRandomSession(50); break;
-              case 'random100Btn': startFixedRandomSession(100); break;
-              case 'historyBtn': showHistory(); break;
-              case 'shuffleBtn': handleShuffle(); break;
-              case 'exitAndSaveBtn': endSession(); break;
-              case 'exitOnlyBtn': handleExitOnly(); break;
-              case 'intervalSequentialBtn': handleIntervalPractice(false); break;
-              case 'intervalRandomBtn': handleIntervalPractice(true); break;
-              default: break;
-            }
+        if (!btn || !topActionsEl.contains(btn)) return;
+
+        switch (btn.id) {
+          case 'defaultPracticeBtn': startDefaultSequentialPractice(); break;
+          case 'random50Btn': startFixedRandomSession(50); break;
+          case 'random100Btn': startFixedRandomSession(100); break;
+          case 'historyBtn': showHistory(); break;
+          case 'shuffleBtn': handleShuffle(); break;
+          case 'exitAndSaveBtn': endSession(); break;
+          case 'exitOnlyBtn': showMainMenu(); break;
+          case 'intervalSequentialBtn': handleIntervalPractice(false); break;
+          case 'intervalRandomBtn': handleIntervalPractice(true); break;
+          default: break;
         }
       });
-
-      function handleExitOnly() {
-        // Find which tab was active before this session started
-        if (mode === 'wrong') {
-            setActiveTab(tabWrongBtn);
-            startPracticeSession(null, "错题本模式");
-        } else if (sessionName.startsWith("顺序刷题")) {
-            setActiveTab(tabSequentialBtn);
-            startDefaultSequentialPractice();
-        } else {
-            setActiveTab(tabModesBtn);
+      
+      tabQuizBtn.addEventListener('click', () => {
+        if (!tabQuizBtn.classList.contains('active')) {
+            setActiveTab(tabQuizBtn);
             showMainMenu();
         }
-      }
-      
-      tabSequentialBtn.addEventListener('click', () => {
-        if (!tabSequentialBtn.classList.contains('active')) {
-            setActiveTab(tabSequentialBtn);
-            startDefaultSequentialPractice();
-        }
       });
 
-      tabModesBtn.addEventListener('click', () => {
-          if (!tabModesBtn.classList.contains('active')) {
-              setActiveTab(tabModesBtn);
-              showMainMenu();
-          }
-      });
       tabWrongBtn.addEventListener('click', () => {
         if (!tabWrongBtn.classList.contains('active')) {
           setActiveTab(tabWrongBtn);
@@ -218,7 +192,7 @@
           const endStr = prompt("请输入结束题号:", "50");
           if (endStr === null) return;
           const startNum = parseInt(startStr), endNum = parseInt(endStr);
-          const maxQuestionNum = questions[questions.length - 1].number;
+          const maxQuestionNum = questions.length > 0 ? questions[questions.length - 1].number : 0;
           if (isNaN(startNum) || isNaN(endNum) || startNum < 1 || endNum > maxQuestionNum || startNum > endNum) {
               alert("输入的题号无效或范围不正确。"); return;
           }
@@ -248,7 +222,7 @@
       
       function startDefaultSequentialPractice() {
           const allIndices = questions.map((_, idx) => idx);
-          startPracticeSession(allIndices, "顺序刷题 (全)");
+          startPracticeSession(allIndices, "默认刷题 (全)");
       }
 
       function startPracticeSession(indices, name) {
@@ -288,13 +262,13 @@
         } else if (attemptedCount > 0) {
           summaryHtml += '<p>全部答对！</p>';
         }
-        summaryHtml += '<button id="sessionReturnBtn">返回练习模式</button> <button id="viewHistoryBtn">查看历史记录</button></div>';
+        summaryHtml += '<button id="sessionReturnBtn">返回主页</button> <button id="viewHistoryBtn">查看历史记录</button></div>';
         contentEl.innerHTML = summaryHtml;
         topActionsEl.innerHTML = '';
         bottomBarEl.classList.add('hidden');
         
         document.getElementById('sessionReturnBtn').addEventListener('click', () => {
-            setActiveTab(tabModesBtn);
+            setActiveTab(tabQuizBtn);
             showMainMenu();
         });
         document.getElementById('viewHistoryBtn').addEventListener('click', showHistory);
@@ -326,7 +300,7 @@
             html += '</div></details></div>';
           });
         }
-        html += '<button id="historyBackBtn">返回练习模式</button></div>';
+        html += '<button id="historyBackBtn">返回主页</button></div>';
         contentEl.innerHTML = html;
 
         contentEl.querySelector('.history-container')?.addEventListener('click', function(event) {
@@ -347,7 +321,7 @@
             }
         });
         document.getElementById('historyBackBtn').addEventListener('click', () => {
-            setActiveTab(tabModesBtn);
+            setActiveTab(tabQuizBtn);
             showMainMenu();
         });
       }
@@ -394,7 +368,7 @@
             prevBtn.classList.remove('hidden');
         }
 
-        submitBtn.addEventListener('click', () => handleSubmit(q, submitBtn, retryBtn, nextBtn, removeWrongBtn));
+        submitBtn.addEventListener('click', () => handleSubmit(q, submitBtn, retryBtn, nextBtn, prevBtn, removeWrongBtn));
         retryBtn.addEventListener('click', showCurrentQuestion);
         
         prevBtn.addEventListener('click', () => {
@@ -416,7 +390,7 @@
         });
       }
 
-      function handleSubmit(q, submitBtn, retryBtn, nextBtn, removeWrongBtn) {
+      function handleSubmit(q, submitBtn, retryBtn, nextBtn, prevBtn, removeWrongBtn) {
         const selected = Array.from(contentEl.querySelectorAll('input[name="answer"]:checked'));
         if (selected.length === 0) { alert('请选择答案后再提交'); return; }
         const userAnswers = selected.map(el => el.value).sort();
@@ -451,8 +425,7 @@
         }
       }
       
-      // Initialize the app to the default sequential practice mode
-      startDefaultSequentialPractice();
+      showMainMenu();
     })();
   </script>
 </body>
