@@ -44,8 +44,23 @@
     #exitOnlyBtn { background-color: #757575; border-color: #757575;}
     #exitOnlyBtn:hover { background-color: #616161; }
 
-    .buttons { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .buttons button { padding: 8px 16px; font-size: 1rem; border: 1px solid #3f51b5; background: #3f51b5; color: #fff; border-radius: 4px; cursor: pointer; }
+    /* --- UPDATED: Button container styles --- */
+    .buttons {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .buttons button {
+      padding: 8px 16px;
+      font-size: 1rem;
+      border: 1px solid #3f51b5;
+      background: #3f51b5;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
     .buttons button:hover { opacity: 0.9; }
 
     .history-container { max-width: 800px; margin: 0 auto; }
@@ -75,7 +90,8 @@
   </nav>
 
   <div id="main-menu">
-    <div id="top-actions"></div>
+    <div id="top-actions">
+      </div>
     <div class="signature-area">
       <p>vyen</p>
       <img src="https://youke1.picui.cn/s1/2025/10/04/68e0e8a9ae986.jpg" alt="二维码">
@@ -94,6 +110,8 @@
     (function() {
       const questions = window.plcQuestionsData;
       let mode = 'quiz';
+      let order = questions.map((_, idx) => idx);
+      let currentIndex = 0;
       let wrongOrder = [];
       let wrongIndex = 0;
       let wrongCounts = JSON.parse(localStorage.getItem('plc1_wrongCounts') || '{}');
@@ -107,6 +125,7 @@
       const bottomBarEl = document.querySelector('.bottom-bar');
       
       const originalTopActionsHTML = `
+        <button id="shuffleBtn">随机打乱</button>
         <button id="random50Btn">随机50题</button>
         <button id="random100Btn">随机100题</button>
         <button id="intervalSequentialBtn">区间顺序</button>
@@ -348,29 +367,16 @@
             html += `<div class="option"><label><input type="${inputType}" name="answer" value="${opt.label}"> ${opt.label}、${text}</label></div>`;
           });
         }
-        // NEW: Added prevBtn
-        html += `</div><div class="buttons"><button id="submitBtn">提交答案</button><button id="retryBtn" class="hidden">再试一次</button><button id="prevBtn" class="hidden">上一题</button><button id="nextBtn" class="hidden">下一题</button><button id="removeWrongBtn" class="hidden">从错题本中移除</button></div><div id="feedback" class="feedback"></div></div>`;
+        html += `</div><div class="buttons"><button id="submitBtn">提交答案</button><button id="retryBtn" class="hidden">再试一次</button><button id="nextBtn" class="hidden">下一题</button><button id="removeWrongBtn" class="hidden">从错题本中移除</button></div><div id="feedback" class="feedback"></div></div>`;
         contentEl.innerHTML = html;
         
-        const submitBtn = document.getElementById('submitBtn'), retryBtn = document.getElementById('retryBtn'), nextBtn = document.getElementById('nextBtn'), prevBtn = document.getElementById('prevBtn'), removeWrongBtn = document.getElementById('removeWrongBtn');
+        const submitBtn = document.getElementById('submitBtn'), retryBtn = document.getElementById('retryBtn'), nextBtn = document.getElementById('nextBtn'), removeWrongBtn = document.getElementById('removeWrongBtn');
         
-        // NEW: Logic to show/hide prevBtn
-        if (sessionCurrentIndex > 0) {
-            prevBtn.classList.remove('hidden');
-        }
-
-        submitBtn.addEventListener('click', () => handleSubmit(q, submitBtn, retryBtn, nextBtn, prevBtn, removeWrongBtn));
+        submitBtn.addEventListener('click', () => handleSubmit(q, submitBtn, retryBtn, nextBtn, removeWrongBtn));
         retryBtn.addEventListener('click', showCurrentQuestion);
-        
-        prevBtn.addEventListener('click', () => {
-            if (mode === 'wrong') wrongIndex--;
-            sessionCurrentIndex--;
-            showCurrentQuestion();
-        });
-
         nextBtn.addEventListener('click', () => {
           if (mode === 'wrong') wrongIndex++;
-          sessionCurrentIndex++;
+          else sessionCurrentIndex++;
           showCurrentQuestion();
         });
         removeWrongBtn.addEventListener('click', () => {
@@ -381,8 +387,7 @@
         });
       }
 
-      // NEW: Added prevBtn to function arguments
-      function handleSubmit(q, submitBtn, retryBtn, nextBtn, prevBtn, removeWrongBtn) {
+      function handleSubmit(q, submitBtn, retryBtn, nextBtn, removeWrongBtn) {
         const selected = Array.from(contentEl.querySelectorAll('input[name="answer"]:checked'));
         if (selected.length === 0) { alert('请选择答案后再提交'); return; }
         const userAnswers = selected.map(el => el.value).sort();
