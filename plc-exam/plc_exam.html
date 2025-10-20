@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- 为 PLC 等级理论考试页面设置标题 -->
   <title>PLC等级理论考试</title>
   <style>
     body { font-family: sans-serif; margin: 0; padding: 0; background: #fafafa; min-height: 100vh; display: flex; flex-direction: column; }
@@ -70,7 +69,7 @@
       border-bottom: 1px solid #ddd;
       flex-wrap: wrap;
     }
-    #top-actions button {
+    #top-actions button, #top-actions input[type="number"] {
       padding: 6px 12px;
       font-size: 0.9rem;
       border: 1px solid #3f51b5;
@@ -78,6 +77,13 @@
       color: #fff;
       border-radius: 4px;
       cursor: pointer;
+      text-align: center; /* 确保数字输入框中的数字居中 */
+    }
+    #top-actions input[type="number"] {
+        background: #fff; /* 输入框背景改为白色 */
+        color: #333; /* 输入框文字改为深色 */
+        width: 60px; /* 调整宽度 */
+        cursor: text;
     }
     #top-actions button:hover {
       opacity: 0.9;
@@ -103,22 +109,22 @@
 </head>
 <body>
   <header>
-    <!-- 标题显示 1+X PLC 考试 -->
     <h1>PLC等级理论考试</h1>
   </header>
   <nav>
     <button id="tabQuiz" class="active">答题区</button>
     <button id="tabWrong">错题本</button>
   </nav>
-  <!-- 顶部操作按钮区域：重置、随机打乱、随机刷题、历史记录 -->
   <div id="top-actions">
     <button id="resetBtn">重置</button>
     <button id="shuffleBtn">随机打乱</button>
     <button id="random50Btn">随机50题</button>
     <button id="random100Btn">随机100题</button>
     <button id="historyBtn">历史记录</button>
+    <input type="number" id="startNum" placeholder="起始题号" value="1" min="1" max="9999" />
+    <input type="number" id="endNum" placeholder="结束题号" value="100" min="1" max="9999" />
+    <button id="randomRangeBtn">区间随机刷题</button>
   </div>
-  <!-- 署名区和二维码 -->
   <div id="signature-area">
     <p>vyen</p>
     <img src="https://youke1.picui.cn/s1/2025/10/04/68e0e8a9ae986.jpg" alt="二维码">
@@ -128,7 +134,6 @@
   <div class="bottom-bar">
     <div id="progress">&nbsp;</div>
   </div>
-  <!-- 引入 1+X PLC 题库数据 -->
   <script src="plc_questions_data.js"></script>
   <script>
     (function() {
@@ -143,6 +148,7 @@
       const wrongCounts = JSON.parse(localStorage.getItem('plc1_wrongCounts') || '{}');
       function updateWrongOrder() {
         wrongOrder = Object.keys(wrongCounts).filter(key => wrongCounts[key] > 0).map(num => {
+          // 注意：questions 数组中的 number 属性是从 1 开始的题号
           return questions.findIndex(q => q.number === parseInt(num));
         }).filter(idx => idx !== -1);
       }
@@ -157,6 +163,12 @@
       const random50Btn = document.getElementById('random50Btn');
       const random100Btn = document.getElementById('random100Btn');
       const historyBtn = document.getElementById('historyBtn');
+
+      // 新增：区间刷题元素
+      const startNumInput = document.getElementById('startNum');
+      const endNumInput = document.getElementById('endNum');
+      const randomRangeBtn = document.getElementById('randomRangeBtn');
+
       // 顶部操作容器，用于事件委托
       const topActionsEl = document.getElementById('top-actions');
       // 会话相关变量
@@ -166,17 +178,8 @@
       let sessionWrong = [];
       // 历史记录，存储每次随机刷题结果（PLC 考试专用键）
       let sessionHistory = JSON.parse(localStorage.getItem('plc1_sessionHistory') || '[]');
-      // 随机刷题按钮点击
-      random50Btn.addEventListener('click', () => {
-        startSession(50);
-      });
-      random100Btn.addEventListener('click', () => {
-        startSession(100);
-      });
-      historyBtn.addEventListener('click', () => {
-        showHistory();
-      });
-      // 使用事件委托处理顶部按钮点击，避免点击无效
+
+      // 使用事件委托处理顶部按钮点击
       topActionsEl.addEventListener('click', (event) => {
         const btn = event.target.closest('button');
         if (!btn) return;
@@ -187,13 +190,44 @@
           case 'random100Btn':
             startSession(100);
             break;
+          case 'randomRangeBtn': // 新增：区间随机刷题
+            startSessionByRange();
+            break;
           case 'historyBtn':
             showHistory();
+            break;
+          case 'resetBtn': // 重置按钮逻辑
+            if (mode === 'quiz') {
+              currentIndex = 0;
+              showCurrentQuestion();
+            } else if (mode === 'wrong') {
+              wrongIndex = 0;
+              showCurrentQuestion();
+            }
+            break;
+          case 'shuffleBtn': // 随机打乱按钮逻辑
+            if (mode === 'quiz') {
+              for (let i = order.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [order[i], order[j]] = [order[j], order[i]];
+              }
+              currentIndex = 0;
+              showCurrentQuestion();
+            } else if (mode === 'wrong') {
+              updateWrongOrder();
+              for (let i = wrongOrder.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [wrongOrder[i], wrongOrder[j]] = [wrongOrder[j], wrongOrder[i]];
+              }
+              wrongIndex = 0;
+              showCurrentQuestion();
+            }
             break;
           default:
             break;
         }
       });
+
       // 切换标签
       tabQuizBtn.addEventListener('click', () => {
         if (mode !== 'quiz') {
@@ -211,57 +245,72 @@
           showCurrentQuestion();
         }
       });
-      // 重置按钮：重置进度
-      resetBtn.addEventListener('click', () => {
-        if (mode === 'quiz') {
-          currentIndex = 0;
-          showCurrentQuestion();
-        } else if (mode === 'wrong') {
-          wrongIndex = 0;
-          showCurrentQuestion();
-        }
-      });
-      // 随机打乱按钮：打乱顺序但不影响错题本
-      shuffleBtn.addEventListener('click', () => {
-        if (mode === 'quiz') {
-          for (let i = order.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [order[i], order[j]] = [order[j], order[i]];
-          }
-          currentIndex = 0;
-          showCurrentQuestion();
-        } else if (mode === 'wrong') {
-          updateWrongOrder();
-          for (let i = wrongOrder.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [wrongOrder[i], wrongOrder[j]] = [wrongOrder[j], wrongOrder[i]];
-          }
-          wrongIndex = 0;
-          showCurrentQuestion();
-        }
-      });
+      
       /**
        * 开始随机刷题
        * @param {number} size 题目数量
+       * @param {number[]} [indicesToSelectFrom] 可选，从这些索引中选择
        */
-      function startSession(size) {
+      function startSession(size, indicesToSelectFrom = questions.map((_, idx) => idx)) {
         mode = 'session';
-        sessionSize = size;
-        // 生成索引并随机
-        const indices = questions.map((_, idx) => idx);
-        for (let i = indices.length - 1; i > 0; i--) {
+        // 随机打乱可选索引
+        const shuffledIndices = [...indicesToSelectFrom];
+        for (let i = shuffledIndices.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
-          [indices[i], indices[j]] = [indices[j], indices[i]];
+          [shuffledIndices[i], shuffledIndices[j]] = [shuffledIndices[j], shuffledIndices[i]];
         }
-        sessionOrder = indices.slice(0, size);
+        
+        sessionOrder = shuffledIndices.slice(0, size);
+        sessionSize = sessionOrder.length; // 实际选择的题目数可能小于 size
         sessionCurrentIndex = 0;
         sessionWrong = [];
+
+        if (sessionSize === 0) {
+            alert('所选区间内没有找到题目，请检查题号范围。');
+            mode = 'quiz';
+            showCurrentQuestion();
+            return;
+        }
+
+        // 切换到 session 模式
         showCurrentQuestion();
       }
+
       /**
-       * 完成随机刷题后的统计
+       * 新增：根据题号范围开始随机刷题
+       */
+      function startSessionByRange() {
+        const startNum = parseInt(startNumInput.value);
+        const endNum = parseInt(endNumInput.value);
+
+        if (isNaN(startNum) || isNaN(endNum) || startNum < 1 || endNum < 1) {
+          alert('请输入有效的起始和结束题号（大于等于 1）。');
+          return;
+        }
+
+        if (startNum > endNum) {
+          alert('起始题号不能大于结束题号。');
+          return;
+        }
+
+        // 筛选出在范围内的题目索引
+        const rangeIndices = questions.map((q, idx) => {
+          // q.number 是题号（从 1 开始）
+          if (q.number >= startNum && q.number <= endNum) {
+            return idx; // 返回题目在 questions 数组中的索引
+          }
+          return -1;
+        }).filter(idx => idx !== -1);
+        
+        // 使用筛选后的索引列表进行随机刷题，数量为整个范围内的题目总数
+        startSession(rangeIndices.length, rangeIndices);
+      }
+
+      /**
+       * 完成随机刷题后的统计 (保持不变)
        */
       function endSession() {
+        // ... (保持原有的 endSession 逻辑不变) ...
         const wrongCount = sessionWrong.length;
         // 保存历史记录
         const entry = {
@@ -302,10 +351,12 @@
           showHistory();
         });
       }
+
       /**
-       * 显示历史记录
+       * 显示历史记录 (保持不变)
        */
       function showHistory() {
+        // ... (保持原有的 showHistory 逻辑不变) ...
         mode = 'history';
         sessionHistory = JSON.parse(localStorage.getItem('plc1_sessionHistory') || '[]');
         if (!sessionHistory.length) {
@@ -347,8 +398,9 @@
           showCurrentQuestion();
         });
       }
+
       /**
-       * 显示当前题目
+       * 显示当前题目 (保持不变)
        */
       function showCurrentQuestion() {
         let qIndex;
@@ -374,6 +426,7 @@
           }
           qIndex = sessionOrder[sessionCurrentIndex];
         } else {
+          // history 模式直接返回
           return;
         }
         const q = questions[qIndex];
@@ -385,7 +438,7 @@
           total = wrongOrder.length;
           currentPos = wrongIndex + 1;
         } else if (mode === 'session') {
-          total = sessionOrder.length;
+          total = sessionSize; // 使用 sessionSize
           currentPos = sessionCurrentIndex + 1;
         }
         // 显示题型
@@ -451,8 +504,9 @@
           showCurrentQuestion();
         });
       }
+
       /**
-       * 提交答案处理
+       * 提交答案处理 (保持不变)
        */
       function handleSubmit(q, qIndex, inputType, submitBtn, retryBtn, nextBtn, feedbackEl) {
         const selected = Array.from(contentEl.querySelectorAll('input[name="answer"]:checked'));
