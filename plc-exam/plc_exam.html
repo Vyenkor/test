@@ -105,10 +105,12 @@
       const tabWrongBtn = document.getElementById('tabWrong');
       const topActionsEl = document.getElementById('top-actions');
       
+      // Original top actions for starting different practice modes. A new “完整刷题” button is added for sequential practice through the entire question bank.
       const originalTopActionsHTML = `
         <button id="shuffleBtn">随机打乱</button>
         <button id="random50Btn">随机50题</button>
         <button id="random100Btn">随机100题</button>
+        <button id="fullBtn">完整刷题</button>
         <button id="intervalSequentialBtn">区间顺序</button>
         <button id="intervalRandomBtn">区间随机</button>
         <button id="historyBtn">历史记录</button>
@@ -121,6 +123,14 @@
       let sessionName = '';
       let sessionHistory = JSON.parse(localStorage.getItem('plc1_sessionHistory') || '[]');
 
+      // When a user resumes a session from history, this index will point to the entry in sessionHistory being resumed.
+      // It is null for new sessions. During resumed sessions the history entry is updated as questions are answered.
+      let currentHistoryResumeIndex = null;
+
+      // Temporary storage for an active session when navigating away (e.g., to wrong mode).
+      // If not null, contains an object with sessionOrder, sessionCurrentIndex, sessionSize, sessionName and sessionWrong.
+      let savedSessionState = null;
+
       function restoreTopActions() {
         topActionsEl.innerHTML = originalTopActionsHTML;
       }
@@ -131,6 +141,7 @@
         switch (btn.id) {
           case 'random50Btn': startFixedRandomSession(50); break;
           case 'random100Btn': startFixedRandomSession(100); break;
+          case 'fullBtn': startFullPractice(); break;
           case 'historyBtn': showHistory(); break;
           case 'shuffleBtn': handleShuffle(); break;
           case 'exitSessionBtn': endSession(); break;
@@ -141,46 +152,110 @@
       });
       
       tabQuizBtn.addEventListener('click', () => {
-        if (mode !== 'quiz') {
-          mode = 'quiz';
+        // If returning from a saved session (after viewing wrong or history), restore the session state
+        if (savedSessionState) {
+          const state = savedSessionState;
+          mode = 'session';
+          sessionOrder = state.sessionOrder.slice();
+          sessionSize = state.sessionSize;
+          sessionName = state.sessionName;
+          sessionCurrentIndex = state.sessionCurrentIndex;
+          sessionWrong = state.sessionWrong.slice();
+          currentHistoryResumeIndex = state.historyIndex;
+          savedSessionState = null;
+          topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="exitSessionBtn">退出并保存到历史记录</button>`;
           tabQuizBtn.classList.add('active');
           tabWrongBtn.classList.remove('active');
-          restoreTopActions();
-          // Hide content when switching back to quiz area until a session starts
-          contentEl.classList.add('hidden');
-          contentEl.innerHTML = '';
-          progressEl.textContent = '';
+          contentEl.classList.remove('hidden');
+          showCurrentQuestion();
+        } else {
+          // If no active session, switch to quiz tab normally
+          if (mode !== 'quiz') {
+            mode = 'quiz';
+            tabQuizBtn.classList.add('active');
+            tabWrongBtn.classList.remove('active');
+            restoreTopActions();
+            // Hide content when switching back to quiz area until a new session is started
+            contentEl.classList.add('hidden');
+            contentEl.innerHTML = '';
+            progressEl.textContent = '';
+          }
         }
       });
       tabWrongBtn.addEventListener('click', () => {
-        if (mode !== 'wrong') {
+        // When a session is active, temporarily switch to wrong mode but preserve session state
+        if (mode === 'session' || savedSessionState) {
+          // Save the current session state if not already saved
+          if (!savedSessionState) {
+            savedSessionState = {
+              sessionOrder: sessionOrder.slice(),
+              sessionSize: sessionSize,
+              sessionName: sessionName,
+              sessionCurrentIndex: sessionCurrentIndex,
+              sessionWrong: sessionWrong.slice(),
+              historyIndex: currentHistoryResumeIndex
+            };
+          }
           mode = 'wrong';
           tabWrongBtn.classList.add('active');
           tabQuizBtn.classList.remove('active');
-          restoreTopActions();
-          // Hide content when switching to wrong area until user chooses a practice mode
-          contentEl.classList.add('hidden');
-          contentEl.innerHTML = '';
-          progressEl.textContent = '';
+          // Keep the current session header and exit button visible
+          topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="exitSessionBtn">退出并保存到历史记录</button>`;
+          // Show wrong questions
+          updateWrongOrder();
+          wrongIndex = 0;
+          contentEl.classList.remove('hidden');
+          showCurrentQuestion();
+        } else {
+          // Normal transition to wrong tab (no active session)
+          if (mode !== 'wrong') {
+            mode = 'wrong';
+            tabWrongBtn.classList.add('active');
+            tabQuizBtn.classList.remove('active');
+            restoreTopActions();
+            // Show wrong questions immediately
+            updateWrongOrder();
+            wrongIndex = 0;
+            if (wrongOrder.length === 0) {
+              contentEl.innerHTML = '<p>没有错题～</p>';
+              progressEl.textContent = '';
+              contentEl.classList.remove('hidden');
+            } else {
+              contentEl.classList.remove('hidden');
+              showCurrentQuestion();
+            }
+          }
         }
       });
 
       function handleShuffle() {
+        // Shuffle behaviour depends on current mode.
+        if (mode === 'session') {
+          // Do not shuffle during an active session to avoid confusing order
+          return;
+        }
         if (mode === 'quiz') {
-          for (let i = order.length - 1; i > 0; i--) {
+          // Shuffle the entire question set and start a full random session
+          const indices = questions.map((_, idx) => idx);
+          for (let i = indices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [order[i], order[j]] = [order[j], order[i]];
+            [indices[i], indices[j]] = [indices[j], indices[i]];
           }
-          currentIndex = 0;
-          showCurrentQuestion();
+          startPracticeSession(indices, '随机打乱');
         } else if (mode === 'wrong') {
+          // Shuffle only wrong questions in wrong mode and start a session on wrong questions
           updateWrongOrder();
           for (let i = wrongOrder.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [wrongOrder[i], wrongOrder[j]] = [wrongOrder[j], wrongOrder[i]];
           }
-          wrongIndex = 0;
-          showCurrentQuestion();
+          if (wrongOrder.length > 0) {
+            startPracticeSession(wrongOrder.slice(), '错题乱序');
+          } else {
+            contentEl.innerHTML = '<p>没有错题～</p>';
+            progressEl.textContent = '';
+            contentEl.classList.remove('hidden');
+          }
         }
       }
       
@@ -226,7 +301,44 @@
         startPracticeSession(sessionIndices, `随机${size}题`);
       }
 
+      // Start a full practice session over the entire question set in sequential order.
+      function startFullPractice() {
+        const indices = questions.map((_, idx) => idx);
+        startPracticeSession(indices, '完整刷题');
+      }
+
+      /**
+       * Resume an incomplete practice session from history.
+       * @param {number} historyIndex Index of the entry in sessionHistory
+       */
+      function resumeSession(historyIndex) {
+        // Retrieve the entry from history
+        const entry = sessionHistory[historyIndex];
+        if (!entry) return;
+        // Restore session parameters
+        mode = 'session';
+        sessionOrder = Array.isArray(entry.order) ? entry.order.slice() : [];
+        // Fallback: if order is not stored, regenerate sequential indices
+        if (sessionOrder.length === 0) {
+          sessionOrder = questions.map((_, idx) => idx);
+        }
+        sessionSize = entry.size;
+        sessionName = entry.mode;
+        sessionCurrentIndex = entry.attempted || 0;
+        sessionWrong = Array.isArray(entry.wrongQuestions) ? entry.wrongQuestions.slice() : [];
+        currentHistoryResumeIndex = historyIndex;
+        savedSessionState = null;
+        // Render the practice header and show the content
+        topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="exitSessionBtn">退出并保存到历史记录</button>`;
+        contentEl.classList.remove('hidden');
+        // Show the question corresponding to the saved current index
+        showCurrentQuestion();
+      }
+
       function startPracticeSession(indices, name) {
+        // Start a new session. Reset resume index and saved state.
+        currentHistoryResumeIndex = null;
+        savedSessionState = null;
         mode = 'session';
         sessionOrder = indices;
         sessionSize = indices.length;
@@ -242,9 +354,24 @@
       function endSession() {
         const wrongCount = sessionWrong.length;
         const attemptedCount = sessionCurrentIndex;
-        const entry = { timestamp: Date.now(), mode: sessionName, size: sessionSize, attempted: attemptedCount, wrongCount: wrongCount, wrongQuestions: sessionWrong.slice() };
-        sessionHistory.push(entry);
+        // Save session history. If this session was resumed from history, update the existing entry, otherwise append a new entry.
+        if (currentHistoryResumeIndex !== null) {
+          const entry = sessionHistory[currentHistoryResumeIndex];
+          entry.timestamp = Date.now();
+          entry.mode = sessionName;
+          entry.size = sessionSize;
+          entry.attempted = attemptedCount;
+          entry.wrongCount = wrongCount;
+          entry.wrongQuestions = sessionWrong.slice();
+          entry.order = sessionOrder.slice();
+        } else {
+          const entry = { timestamp: Date.now(), mode: sessionName, size: sessionSize, attempted: attemptedCount, wrongCount: wrongCount, wrongQuestions: sessionWrong.slice(), order: sessionOrder.slice() };
+          sessionHistory.push(entry);
+        }
         localStorage.setItem('plc1_sessionHistory', JSON.stringify(sessionHistory));
+        // Reset resume index and clear any saved session state after finishing the session
+        currentHistoryResumeIndex = null;
+        savedSessionState = null;
         let summaryHtml = `<div class="session-summary"><h2>练习模式 “${sessionName}” 已结束</h2><p>作答情况：${attemptedCount} / ${sessionSize}</p><p>答错题数：${wrongCount}</p>`;
         if (wrongCount > 0) {
           summaryHtml += '<ul>';
@@ -316,6 +443,10 @@
             } else {
               html += '<p>未作答题目。</p>';
             }
+            // If the session is incomplete, provide a resume button to continue from where the user left off
+            if (entry.attempted < entry.size) {
+              html += `<p><button class="resume-btn" data-index="${originalIndex}">继续练习</button></p>`;
+            }
             html += '</div></details></div>';
           });
         }
@@ -338,6 +469,7 @@
                         localStorage.setItem('plc1_sessionHistory', JSON.stringify(sessionHistory));
                         showHistory(); // Refresh view
                     }
+                    return;
                 }
                 // Handle clear all
                 if (event.target.id === 'clearHistoryBtn') {
@@ -346,6 +478,15 @@
                         localStorage.removeItem('plc1_sessionHistory');
                         showHistory(); // Refresh view
                     }
+                    return;
+                }
+                // Handle resume button
+                if (event.target.classList.contains('resume-btn')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const idx = parseInt(event.target.dataset.index, 10);
+                    resumeSession(idx);
+                    return;
                 }
             });
         }
@@ -415,9 +556,24 @@
         submitBtn.addEventListener('click', () => handleSubmit(q, inputType, submitBtn, retryBtn, nextBtn, removeWrongBtn));
         retryBtn.addEventListener('click', showCurrentQuestion);
         nextBtn.addEventListener('click', () => {
-          if (mode === 'quiz') { currentIndex++; if (currentIndex >= order.length) currentIndex = 0; }
-          else if (mode === 'wrong') { wrongIndex++; if (wrongIndex >= wrongOrder.length) wrongIndex = 0; }
-          else if (mode === 'session') { sessionCurrentIndex++; }
+          if (mode === 'quiz') {
+            currentIndex++;
+            if (currentIndex >= order.length) currentIndex = 0;
+          } else if (mode === 'wrong') {
+            wrongIndex++;
+            if (wrongIndex >= wrongOrder.length) wrongIndex = 0;
+          } else if (mode === 'session') {
+            sessionCurrentIndex++;
+            // When resuming from history, persist progress to the history entry
+            if (currentHistoryResumeIndex !== null) {
+              const resumeEntry = sessionHistory[currentHistoryResumeIndex];
+              resumeEntry.attempted = sessionCurrentIndex;
+              resumeEntry.wrongCount = sessionWrong.length;
+              resumeEntry.wrongQuestions = sessionWrong.slice();
+              resumeEntry.order = sessionOrder.slice();
+              localStorage.setItem('plc1_sessionHistory', JSON.stringify(sessionHistory));
+            }
+          }
           showCurrentQuestion();
         });
         removeWrongBtn.addEventListener('click', () => {
@@ -463,6 +619,13 @@
           nextBtn.classList.remove('hidden');
           if (mode === 'session' && !sessionWrong.some(item => item.number === q.number)) {
             sessionWrong.push({ number: q.number, correctAnswer: correctDisplay, userAnswer: userAnswers.join('') });
+            // When resuming from history, update wrong counts immediately
+            if (currentHistoryResumeIndex !== null) {
+              const resumeEntry = sessionHistory[currentHistoryResumeIndex];
+              resumeEntry.wrongCount = sessionWrong.length;
+              resumeEntry.wrongQuestions = sessionWrong.slice();
+              localStorage.setItem('plc1_sessionHistory', JSON.stringify(sessionHistory));
+            }
           }
         }
       }
