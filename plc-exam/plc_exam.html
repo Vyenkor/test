@@ -78,7 +78,8 @@
     <img src="https://youke1.picui.cn/s1/2025/10/04/68e0e8a9ae986.jpg" alt="二维码">
     <p>请为我点赞</p>
   </div>
-  <div id="content"></div>
+  <!-- Initially hide the content area so only the mode buttons and signature show until a practice session starts -->
+  <div id="content" class="hidden"></div>
   <div class="bottom-bar">
     <div id="progress">&nbsp;</div>
   </div>
@@ -145,7 +146,10 @@
           tabQuizBtn.classList.add('active');
           tabWrongBtn.classList.remove('active');
           restoreTopActions();
-          showCurrentQuestion();
+          // Hide content when switching back to quiz area until a session starts
+          contentEl.classList.add('hidden');
+          contentEl.innerHTML = '';
+          progressEl.textContent = '';
         }
       });
       tabWrongBtn.addEventListener('click', () => {
@@ -154,7 +158,10 @@
           tabWrongBtn.classList.add('active');
           tabQuizBtn.classList.remove('active');
           restoreTopActions();
-          showCurrentQuestion();
+          // Hide content when switching to wrong area until user chooses a practice mode
+          contentEl.classList.add('hidden');
+          contentEl.innerHTML = '';
+          progressEl.textContent = '';
         }
       });
 
@@ -227,6 +234,8 @@
         topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="exitSessionBtn">退出并保存到历史记录</button>`;
         sessionCurrentIndex = 0;
         sessionWrong = [];
+        // Show the content area and render the first question
+        contentEl.classList.remove('hidden');
         showCurrentQuestion();
       }
 
@@ -248,11 +257,16 @@
         }
         summaryHtml += '<button id="sessionReturnBtn">返回答题区</button> <button id="viewHistoryBtn">查看历史记录</button></div>';
         contentEl.innerHTML = summaryHtml;
+        // Ensure the content area is visible for the summary
+        contentEl.classList.remove('hidden');
         progressEl.textContent = '';
         document.getElementById('sessionReturnBtn').addEventListener('click', () => {
+          // Return to quiz area but keep questions hidden until a new session begins
           mode = 'quiz';
           restoreTopActions();
-          showCurrentQuestion();
+          contentEl.classList.add('hidden');
+          contentEl.innerHTML = '';
+          progressEl.textContent = '';
         });
         document.getElementById('viewHistoryBtn').addEventListener('click', showHistory);
       }
@@ -307,6 +321,8 @@
         }
         html += '<button id="historyBackBtn">返回答题区</button></div>';
         contentEl.innerHTML = html;
+        // Ensure history content is visible
+        contentEl.classList.remove('hidden');
 
         // Add event listeners for new buttons
         const historyContainer = contentEl.querySelector('.history-container');
@@ -335,9 +351,12 @@
         }
         
         document.getElementById('historyBackBtn').addEventListener('click', () => {
+          // Return to quiz area but keep questions hidden until a new session begins
           mode = 'quiz';
           restoreTopActions();
-          showCurrentQuestion();
+          contentEl.classList.add('hidden');
+          contentEl.innerHTML = '';
+          progressEl.textContent = '';
         });
       }
 
@@ -447,9 +466,11 @@
           }
         }
       }
-      // 初始化
+      // 初始化：仅显示顶部操作和签名，隐藏题目区域
       restoreTopActions();
-      showCurrentQuestion();
+      contentEl.classList.add('hidden');
+      contentEl.innerHTML = '';
+      progressEl.textContent = '';
     })();
   </script>
 </body>
