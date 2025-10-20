@@ -24,6 +24,8 @@
     .feedback.incorrect { color: #e53935; }
     
     .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #f5f5f5; border-top: 1px solid #ddd; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .bottom-bar button { margin-left: 8px; padding: 6px 12px; border: 1px solid #3f51b5; border-radius: 4px; background: #3f51b5; color: white; cursor: pointer; font-size: 0.9rem; }
+    .bottom-bar button:hover { opacity: 0.9; }
     .hidden { display: none; }
     
     @media (max-width: 600px) {
@@ -91,7 +93,7 @@
   <script>
     (function() {
       const questions = window.plcQuestionsData;
-      let mode = '';
+      let mode = 'quiz';
       let wrongOrder = [];
       let wrongIndex = 0;
       let wrongCounts = JSON.parse(localStorage.getItem('plc1_wrongCounts') || '{}');
@@ -105,7 +107,6 @@
       const bottomBarEl = document.querySelector('.bottom-bar');
       
       const originalTopActionsHTML = `
-        <button id="defaultPracticeBtn">默认刷题</button>
         <button id="random50Btn">随机50题</button>
         <button id="random100Btn">随机100题</button>
         <button id="intervalSequentialBtn">区间顺序</button>
@@ -120,17 +121,17 @@
       let sessionName = '';
       let sessionHistory = JSON.parse(localStorage.getItem('plc1_sessionHistory') || '[]');
 
-      function setActiveTab(activeTab) {
-          [tabQuizBtn, tabWrongBtn].forEach(tab => tab.classList.remove('active'));
-          activeTab.classList.add('active');
+      function restoreTopActions() {
+        topActionsEl.innerHTML = originalTopActionsHTML;
       }
-
+      
       function showMainMenu() {
-        mode = 'menu';
+        mode = 'quiz';
         contentEl.classList.add('hidden');
         bottomBarEl.classList.add('hidden');
         mainMenuEl.classList.remove('hidden');
-        topActionsEl.innerHTML = originalTopActionsHTML;
+        nav.classList.remove('hidden');
+        restoreTopActions();
         progressEl.innerHTML = '&nbsp;';
         document.querySelector('header h1').textContent = 'PLC等级理论考试';
       }
@@ -140,7 +141,6 @@
         if (!btn || !topActionsEl.contains(btn)) return;
 
         switch (btn.id) {
-          case 'defaultPracticeBtn': startDefaultSequentialPractice(); break;
           case 'random50Btn': startFixedRandomSession(50); break;
           case 'random100Btn': startFixedRandomSession(100); break;
           case 'historyBtn': showHistory(); break;
@@ -155,15 +155,16 @@
       
       tabQuizBtn.addEventListener('click', () => {
         if (!tabQuizBtn.classList.contains('active')) {
-            setActiveTab(tabQuizBtn);
-            showMainMenu();
+          tabQuizBtn.classList.add('active');
+          tabWrongBtn.classList.remove('active');
+          showMainMenu();
         }
       });
-
       tabWrongBtn.addEventListener('click', () => {
         if (!tabWrongBtn.classList.contains('active')) {
-          setActiveTab(tabWrongBtn);
           mode = 'wrong';
+          tabWrongBtn.classList.add('active');
+          tabQuizBtn.classList.remove('active');
           startPracticeSession(null, "错题本模式");
         }
       });
@@ -192,7 +193,7 @@
           const endStr = prompt("请输入结束题号:", "50");
           if (endStr === null) return;
           const startNum = parseInt(startStr), endNum = parseInt(endStr);
-          const maxQuestionNum = questions.length > 0 ? questions[questions.length - 1].number : 0;
+          const maxQuestionNum = questions[questions.length - 1].number;
           if (isNaN(startNum) || isNaN(endNum) || startNum < 1 || endNum > maxQuestionNum || startNum > endNum) {
               alert("输入的题号无效或范围不正确。"); return;
           }
@@ -219,11 +220,6 @@
         }
         startPracticeSession(indices.slice(0, size), `随机${size}题`);
       }
-      
-      function startDefaultSequentialPractice() {
-          const allIndices = questions.map((_, idx) => idx);
-          startPracticeSession(allIndices, "默认刷题 (全)");
-      }
 
       function startPracticeSession(indices, name) {
         sessionName = name;
@@ -236,9 +232,8 @@
             sessionOrder = wrongOrder;
             topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="shuffleBtn">打乱顺序</button><button id="exitOnlyBtn">退出</button>`;
         } else {
-            mode = 'session';
             sessionOrder = indices;
-            topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="exitAndSaveBtn">退出并保存记录</button><button id="exitOnlyBtn">退出</button>`;
+            topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="exitAndSaveBtn">退出并保存记录</button><button id="exitOnlyBtn">只退出</button>`;
         }
 
         sessionSize = sessionOrder.length;
@@ -267,10 +262,7 @@
         topActionsEl.innerHTML = '';
         bottomBarEl.classList.add('hidden');
         
-        document.getElementById('sessionReturnBtn').addEventListener('click', () => {
-            setActiveTab(tabQuizBtn);
-            showMainMenu();
-        });
+        document.getElementById('sessionReturnBtn').addEventListener('click', showMainMenu);
         document.getElementById('viewHistoryBtn').addEventListener('click', showHistory);
       }
 
@@ -320,10 +312,7 @@
                 }
             }
         });
-        document.getElementById('historyBackBtn').addEventListener('click', () => {
-            setActiveTab(tabQuizBtn);
-            showMainMenu();
-        });
+        document.getElementById('historyBackBtn').addEventListener('click', showMainMenu);
       }
 
       function showCurrentQuestion() {
@@ -359,11 +348,13 @@
             html += `<div class="option"><label><input type="${inputType}" name="answer" value="${opt.label}"> ${opt.label}、${text}</label></div>`;
           });
         }
+        // NEW: Added prevBtn
         html += `</div><div class="buttons"><button id="submitBtn">提交答案</button><button id="retryBtn" class="hidden">再试一次</button><button id="prevBtn" class="hidden">上一题</button><button id="nextBtn" class="hidden">下一题</button><button id="removeWrongBtn" class="hidden">从错题本中移除</button></div><div id="feedback" class="feedback"></div></div>`;
         contentEl.innerHTML = html;
         
         const submitBtn = document.getElementById('submitBtn'), retryBtn = document.getElementById('retryBtn'), nextBtn = document.getElementById('nextBtn'), prevBtn = document.getElementById('prevBtn'), removeWrongBtn = document.getElementById('removeWrongBtn');
         
+        // NEW: Logic to show/hide prevBtn
         if (sessionCurrentIndex > 0) {
             prevBtn.classList.remove('hidden');
         }
@@ -390,6 +381,7 @@
         });
       }
 
+      // NEW: Added prevBtn to function arguments
       function handleSubmit(q, submitBtn, retryBtn, nextBtn, prevBtn, removeWrongBtn) {
         const selected = Array.from(contentEl.querySelectorAll('input[name="answer"]:checked'));
         if (selected.length === 0) { alert('请选择答案后再提交'); return; }
