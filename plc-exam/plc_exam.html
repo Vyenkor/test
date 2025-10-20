@@ -12,6 +12,7 @@
     nav button { flex: 1; padding: 14px 0; border: none; background: none; font-size: 1rem; cursor: pointer; }
     nav button.active { border-bottom: 3px solid #3f51b5; font-weight: bold; background-color: #e0e0e0; }
     
+    /* 内容区域基础样式 */
     #content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
     .question-container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .question-header { display: flex; align-items: center; margin-bottom: 10px; }
@@ -34,6 +35,7 @@
       .bottom-bar button { margin-left: 0; flex: 1 1 auto; }
     }
     
+    /* --- NEW: 主菜单页面样式 --- */
     #main-menu { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
     .signature-area { text-align: center; padding: 16px; }
     .signature-area img { max-width: 150px; display: block; margin: 12px auto; border-radius: 8px; }
@@ -41,26 +43,12 @@
     #top-actions { display: flex; justify-content: center; align-items: center; gap: 10px; padding: 16px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-wrap: wrap; max-width: 600px; margin-bottom: 24px;}
     #top-actions button { padding: 10px 16px; font-size: 1rem; border: 1px solid #3f51b5; background: #3f51b5; color: #fff; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; }
     #top-actions button:hover { background-color: #303f9f; }
+    /* Session-active buttons */
     #exitOnlyBtn { background-color: #757575; border-color: #757575;}
     #exitOnlyBtn:hover { background-color: #616161; }
 
-    /* --- UPDATED: Button container styles --- */
-    .buttons {
-      margin-top: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    .buttons button {
-      padding: 8px 16px;
-      font-size: 1rem;
-      border: 1px solid #3f51b5;
-      background: #3f51b5;
-      color: #fff;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+    .buttons button { padding: 8px 16px; font-size: 1rem; margin-right: 8px; border: 1px solid #3f51b5; background: #3f51b5; color: #fff; border-radius: 4px; cursor: pointer; }
+    .buttons button:last-child { margin-right: 0; }
     .buttons button:hover { opacity: 0.9; }
 
     .history-container { max-width: 800px; margin: 0 auto; }
@@ -144,17 +132,20 @@
         topActionsEl.innerHTML = originalTopActionsHTML;
       }
       
+      // NEW: Function to show the main menu
       function showMainMenu() {
         mode = 'quiz';
         contentEl.classList.add('hidden');
         bottomBarEl.classList.add('hidden');
         mainMenuEl.classList.remove('hidden');
-        nav.classList.remove('hidden');
+        nav.classList.remove('hidden'); // Ensure nav is visible
         restoreTopActions();
         progressEl.innerHTML = '&nbsp;';
+        // Reset header title if needed
         document.querySelector('header h1').textContent = 'PLC等级理论考试';
       }
 
+      // Main event delegation for top action buttons
       document.body.addEventListener('click', (event) => {
         const btn = event.target.closest('button');
         if (!btn || !topActionsEl.contains(btn)) return;
@@ -164,8 +155,8 @@
           case 'random100Btn': startFixedRandomSession(100); break;
           case 'historyBtn': showHistory(); break;
           case 'shuffleBtn': handleShuffle(); break;
-          case 'exitAndSaveBtn': endSession(); break;
-          case 'exitOnlyBtn': showMainMenu(); break;
+          case 'exitAndSaveBtn': endSession(); break; // Renamed
+          case 'exitOnlyBtn': showMainMenu(); break; // New
           case 'intervalSequentialBtn': handleIntervalPractice(false); break;
           case 'intervalRandomBtn': handleIntervalPractice(true); break;
           default: break;
@@ -195,6 +186,7 @@
       }
 
       function handleShuffle() {
+        // Shuffle can only be triggered from错题本 now
         if (mode === 'wrong') {
           updateWrongOrder();
           for (let i = wrongOrder.length - 1; i > 0; i--) {
@@ -246,9 +238,11 @@
         contentEl.classList.remove('hidden');
         bottomBarEl.classList.remove('hidden');
         
+        // Handle错题本 mode specifically
         if (mode === 'wrong') {
             updateWrongOrder();
-            sessionOrder = wrongOrder;
+            sessionOrder = wrongOrder; // Use wrongOrder for错题本
+            // For错题本, only provide shuffle and exit options
             topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="shuffleBtn">打乱顺序</button><button id="exitOnlyBtn">退出</button>`;
         } else {
             sessionOrder = indices;
@@ -278,7 +272,7 @@
         }
         summaryHtml += '<button id="sessionReturnBtn">返回主页</button> <button id="viewHistoryBtn">查看历史记录</button></div>';
         contentEl.innerHTML = summaryHtml;
-        topActionsEl.innerHTML = '';
+        topActionsEl.innerHTML = ''; // Clear top actions on summary page
         bottomBarEl.classList.add('hidden');
         
         document.getElementById('sessionReturnBtn').addEventListener('click', showMainMenu);
@@ -343,7 +337,7 @@
           }
           wrongIndex = Math.max(0, Math.min(wrongIndex, wrongOrder.length - 1));
           qIndex = wrongOrder[wrongIndex];
-          sessionCurrentIndex = wrongIndex;
+          sessionCurrentIndex = wrongIndex; // Sync for progress
         } else if (mode === 'session') {
           if (sessionCurrentIndex >= sessionOrder.length) { endSession(); return; }
           qIndex = sessionOrder[sessionCurrentIndex];
@@ -376,7 +370,7 @@
         retryBtn.addEventListener('click', showCurrentQuestion);
         nextBtn.addEventListener('click', () => {
           if (mode === 'wrong') wrongIndex++;
-          else sessionCurrentIndex++;
+          sessionCurrentIndex++;
           showCurrentQuestion();
         });
         removeWrongBtn.addEventListener('click', () => {
@@ -422,6 +416,7 @@
         }
       }
       
+      // Initialize the app to show the main menu
       showMainMenu();
     })();
   </script>
