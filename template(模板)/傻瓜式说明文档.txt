@@ -1,0 +1,16 @@
+文件说明：
+
+word2questions.js：用于将word文档转换为刷题程序使用的js数据库
+word文档：需要把你的题库上传到这里，并且要符合word里受支持的格式
+主程序html：当准备好js题库后，打开这个程序
+
+步骤：
+
+1.将你的题库转化为符合要求的word格式，并且命名为题库.dock
+2.以管理员身份运行word2questions.js.py程序
+3.确保js文件和html文件在同一目录下
+4.运行html文件以edge或以其他受支持浏览器打开
+
+命名规范：
+word：题库.dock
+js：questions_data.js
