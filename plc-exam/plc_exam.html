@@ -14,6 +14,7 @@
       flex: 1;
       overflow-y: auto;
       padding: 20px;
+      /* 给内容区增加底部填充，以防固定底栏遮挡内容 */
       padding-bottom: 100px;
     }
     .question-container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -29,38 +30,114 @@
     .bottom-bar button { margin-left: 8px; padding: 6px 12px; border: 1px solid #3f51b5; border-radius: 4px; background: #3f51b5; color: white; cursor: pointer; font-size: 0.9rem; }
     .bottom-bar button:hover { opacity: 0.9; }
     .hidden { display: none; }
+    /* 移动端布局调整：当屏幕较窄时，底栏内容垂直堆叠，按钮换行 */
     @media (max-width: 600px) {
-      .bottom-bar { flex-direction: column; align-items: flex-start; }
-      .bottom-bar > div + div { margin-top: 8px; width: 100%; display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 8px; }
-      .bottom-bar button { margin-left: 0; flex: 1 1 auto; }
+      .bottom-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .bottom-bar > div + div {
+        margin-top: 8px;
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .bottom-bar button {
+        margin-left: 0;
+        flex: 1 1 auto;
+      }
     }
-    #signature-area { text-align: center; padding: 16px; }
-    #signature-area img { max-width: 120px; display: block; margin: 8px auto; }
-    #top-actions { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 8px 16px; background: #f5f5f5; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
-    #top-actions button { padding: 6px 12px; font-size: 0.9rem; border: 1px solid #3f51b5; background: #3f51b5; color: #fff; border-radius: 4px; cursor: pointer; }
-    #top-actions button:hover { opacity: 0.9; }
-    .buttons button { padding: 8px 16px; font-size: 1rem; margin-right: 8px; border: 1px solid #3f51b5; background: #3f51b5; color: #fff; border-radius: 4px; cursor: pointer; }
-    .buttons button:last-child { margin-right: 0; }
-    .buttons button:hover { opacity: 0.9; }
+    /* 署名区域样式 */
+    #signature-area {
+      text-align: center;
+      padding: 16px;
+    }
+    #signature-area img {
+      max-width: 120px;
+      display: block;
+      margin: 8px auto;
+    }
+    /* 顶部操作按钮区域样式 */
+    #top-actions {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #f5f5f5;
+      border-bottom: 1px solid #ddd;
+      flex-wrap: wrap;
+    }
+    #top-actions button, #top-actions input[type="number"] {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      border: 1px solid #3f51b5;
+      background: #3f51b5;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center; /* 确保数字输入框中的数字居中 */
+      /* 统一按钮和输入框高度 */
+      height: 34px;
+      box-sizing: border-box;
+    }
+    #top-actions input[type="number"] {
+        background: #fff; /* 输入框背景改为白色 */
+        color: #333; /* 输入框文字改为深色 */
+        width: 60px; /* 调整宽度 */
+        cursor: text;
+    }
+    #top-actions button:hover {
+      opacity: 0.9;
+    }
+    /* 答题区按钮区域样式 */
+    .buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .buttons button {
+      padding: 8px 16px;
+      font-size: 1rem;
+      border: 1px solid #3f51b5;
+      background: #3f51b5;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      flex-grow: 1; /* 确保按钮在小屏幕上自动占据空间 */
+    }
+    .buttons button:hover {
+      opacity: 0.9;
+    }
 
-    /* --- NEW: History Page Styles --- */
-    .history-container { max-width: 800px; margin: 0 auto; }
-    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .history-header h2 { margin: 0; }
-    .history-entry { background: #fff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .history-entry summary { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; font-weight: normal; cursor: pointer; list-style: none; }
-    .history-entry summary::-webkit-details-marker { display: none; }
-    .history-entry summary .summary-info { display: flex; flex-direction: column; }
-    .history-entry summary .summary-info .info-main { font-weight: bold; color: #333; }
-    .history-entry summary .summary-info .info-sub { font-size: 0.85rem; color: #757575; margin-top: 4px; }
-    .history-details { padding: 12px 16px 16px 16px; border-top: 1px solid #eee; }
-    .history-details ul { padding-left: 20px; margin: 0; }
-    .history-details li { margin-bottom: 4px; color: #555; }
-    .delete-btn { background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
-    .delete-btn:hover { opacity: 0.85; }
-    #clearHistoryBtn { background-color: #f44336; border-color: #f44336; }
-    /* --- End of New Styles --- */
-
+    /* 刷题总结界面的按钮布局调整 */
+    .session-summary hr { margin: 16px 0; border-color: #eee; }
+    .session-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        margin-bottom: 10px; /* 增加与下方按钮的间距 */
+    }
+    .session-actions button {
+        padding: 8px 16px;
+        border: 1px solid #3f51b5;
+        background: #3f51b5;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        flex-grow: 1;
+        min-width: 120px; /* 确保按钮不会太窄 */
+    }
+    #clearWrongBtn {
+        background: #4CAF50; /* 绿色 */
+        border-color: #4CAF50;
+    }
+    #keepWrongBtn {
+        background: #f44336; /* 红色 */
+        border-color: #f44336;
+    }
   </style>
 </head>
 <body>
@@ -72,7 +149,16 @@
     <button id="tabWrong">错题本</button>
   </nav>
   <div id="top-actions">
-    </div>
+    <button id="resetBtn">重置</button>
+    <button id="shuffleBtn">随机打乱</button>
+    <button id="random50Btn">随机50题</button>
+    <button id="random100Btn">随机100题</button>
+    <button id="historyBtn">历史记录</button>
+    <input type="number" id="startNum" placeholder="起始题号" value="1" min="1" max="9999" />
+    <input type="number" id="endNum" placeholder="结束题号" value="100" min="1" max="9999" />
+    <button id="randomRangeBtn">区间随机</button>
+    <button id="sequenceRangeBtn">区间顺序</button>
+  </div>
   <div id="signature-area">
     <p>vyen</p>
     <img src="https://youke1.picui.cn/s1/2025/10/04/68e0e8a9ae986.jpg" alt="二维码">
@@ -85,66 +171,54 @@
   <script src="plc_questions_data.js"></script>
   <script>
     (function() {
+      // 使用 PLC 题库数据
       const questions = window.plcQuestionsData;
-      let mode = 'quiz';
-      let order = questions.map((_, idx) => idx);
-      let currentIndex = 0;
-      let wrongOrder = [];
-      let wrongIndex = 0;
+      let mode = 'quiz'; // 'quiz', 'wrong', 'session', 'history'
+      let order = questions.map((_, idx) => idx); // 答题区顺序
+      let currentIndex = 0; // 答题区当前索引
+      let wrongOrder = []; // 错题本索引
+      let wrongIndex = 0; // 错题本当前索引
+      
+      // 会话相关变量
+      let sessionOrder = []; // 刷题会话的题目索引
+      let sessionCurrentIndex = 0; // 会话当前索引
+      let sessionSize = 0; // 会话总题数
+      let sessionWrong = []; // 会话中答错的题目记录（用于历史记录）
+      let sessionCorrectQuestions = []; // 会话中答对的题目索引（用于错题本清除）
+      let sessionIsWrongbook = false; // 标记当前会话是否为错题本练习
+
+      // 从 localStorage 读取错题统计（为 PLC 考试单独的键）
       let wrongCounts = JSON.parse(localStorage.getItem('plc1_wrongCounts') || '{}');
-      function updateWrongOrder() {
-        wrongOrder = Object.keys(wrongCounts).filter(key => wrongCounts[key] > 0).map(num => {
-          return questions.findIndex(q => q.number === parseInt(num));
-        }).filter(idx => idx !== -1);
-      }
-      updateWrongOrder();
+      // 历史记录，存储每次随机刷题结果（PLC 考试专用键）
+      let sessionHistory = JSON.parse(localStorage.getItem('plc1_sessionHistory') || '[]');
+
+      // 元素引用
       const contentEl = document.getElementById('content');
       const progressEl = document.getElementById('progress');
       const tabQuizBtn = document.getElementById('tabQuiz');
       const tabWrongBtn = document.getElementById('tabWrong');
+      const startNumInput = document.getElementById('startNum');
+      const endNumInput = document.getElementById('endNum');
       const topActionsEl = document.getElementById('top-actions');
-      
-      const originalTopActionsHTML = `
-        <button id="shuffleBtn">随机打乱</button>
-        <button id="random50Btn">随机50题</button>
-        <button id="random100Btn">随机100题</button>
-        <button id="intervalSequentialBtn">区间顺序</button>
-        <button id="intervalRandomBtn">区间随机</button>
-        <button id="historyBtn">历史记录</button>
-      `;
 
-      let sessionOrder = [];
-      let sessionCurrentIndex = 0;
-      let sessionSize = 0;
-      let sessionWrong = [];
-      let sessionName = '';
-      let sessionHistory = JSON.parse(localStorage.getItem('plc1_sessionHistory') || '[]');
 
-      function restoreTopActions() {
-        topActionsEl.innerHTML = originalTopActionsHTML;
+      /**
+       * 更新错题本索引列表
+       */
+      function updateWrongOrder() {
+        wrongOrder = Object.keys(wrongCounts).filter(key => wrongCounts[key] > 0).map(num => {
+          // 查找题号对应的索引
+          return questions.findIndex(q => q.number === parseInt(num));
+        }).filter(idx => idx !== -1);
       }
+      updateWrongOrder();
       
-      topActionsEl.addEventListener('click', (event) => {
-        const btn = event.target.closest('button');
-        if (!btn) return;
-        switch (btn.id) {
-          case 'random50Btn': startFixedRandomSession(50); break;
-          case 'random100Btn': startFixedRandomSession(100); break;
-          case 'historyBtn': showHistory(); break;
-          case 'shuffleBtn': handleShuffle(); break;
-          case 'exitSessionBtn': endSession(); break;
-          case 'intervalSequentialBtn': handleIntervalPractice(false); break;
-          case 'intervalRandomBtn': handleIntervalPractice(true); break;
-          default: break;
-        }
-      });
-      
+      // 切换标签
       tabQuizBtn.addEventListener('click', () => {
         if (mode !== 'quiz') {
           mode = 'quiz';
           tabQuizBtn.classList.add('active');
           tabWrongBtn.classList.remove('active');
-          restoreTopActions();
           showCurrentQuestion();
         }
       });
@@ -153,269 +227,427 @@
           mode = 'wrong';
           tabWrongBtn.classList.add('active');
           tabQuizBtn.classList.remove('active');
-          restoreTopActions();
+          // 如果错题本为空，则提示
+          updateWrongOrder();
+          if (wrongOrder.length === 0) {
+              contentEl.innerHTML = '<p>没有错题～</p>';
+              progressEl.textContent = '';
+              return;
+          }
+          // 切换到错题本模式时，默认从头开始
+          wrongIndex = 0;
           showCurrentQuestion();
         }
       });
 
-      function handleShuffle() {
-        if (mode === 'quiz') {
-          for (let i = order.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [order[i], order[j]] = [order[j], order[i]];
-          }
-          currentIndex = 0;
-          showCurrentQuestion();
-        } else if (mode === 'wrong') {
-          updateWrongOrder();
-          for (let i = wrongOrder.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [wrongOrder[i], wrongOrder[j]] = [wrongOrder[j], wrongOrder[i]];
-          }
-          wrongIndex = 0;
-          showCurrentQuestion();
+      // 使用事件委托处理顶部按钮点击
+      topActionsEl.addEventListener('click', (event) => {
+        const btn = event.target.closest('button');
+        if (!btn) return;
+        switch (btn.id) {
+          case 'resetBtn':
+            if (mode === 'quiz') { currentIndex = 0; }
+            else if (mode === 'wrong') { wrongIndex = 0; updateWrongOrder(); }
+            showCurrentQuestion();
+            break;
+          case 'shuffleBtn':
+            if (mode === 'quiz') {
+              shuffleArray(order);
+              currentIndex = 0;
+            } else if (mode === 'wrong') {
+              updateWrongOrder();
+              shuffleArray(wrongOrder);
+              wrongIndex = 0;
+            }
+            showCurrentQuestion();
+            break;
+          case 'random50Btn':
+            startSession(50, questions.map((_, idx) => idx), '随机50题', true, false);
+            break;
+          case 'random100Btn':
+            startSession(100, questions.map((_, idx) => idx), '随机100题', true, false);
+            break;
+          case 'randomRangeBtn':
+            startSessionByRange(true);
+            break;
+          case 'sequenceRangeBtn': // 新增：区间顺序刷题
+            startSessionByRange(false);
+            break;
+          case 'historyBtn':
+            showHistory();
+            break;
+          default:
+            break;
         }
-      }
-      
-      function handleIntervalPractice(isRandom) {
-          const startStr = prompt("请输入起始题号:", "1");
-          if (startStr === null) return;
-          const endStr = prompt("请输入结束题号:", "50");
-          if (endStr === null) return;
-          const startNum = parseInt(startStr);
-          const endNum = parseInt(endStr);
-          const maxQuestionNum = questions[questions.length - 1].number;
-          if (isNaN(startNum) || isNaN(endNum) || startNum < 1 || endNum > maxQuestionNum || startNum > endNum) {
-              alert("输入的题号无效或范围不正确。请确保起始题号小于等于结束题号，且在 1 到 " + maxQuestionNum + " 之间。");
-              return;
-          }
-          let indices = [];
-          for (let i = 0; i < questions.length; i++) {
-              if (questions[i].number >= startNum && questions[i].number <= endNum) {
-                  indices.push(i);
-              }
-          }
-          if(indices.length === 0){
-              alert("在该范围内没有找到任何题目。");
-              return;
-          }
-          if (isRandom) {
-              for (let i = indices.length - 1; i > 0; i--) {
-                  const j = Math.floor(Math.random() * (i + 1));
-                  [indices[i], indices[j]] = [indices[j], indices[i]];
-              }
-          }
-          const name = isRandom ? `区间随机 (${startNum}-${endNum})` : `区间顺序 (${startNum}-${endNum})`;
-          startPracticeSession(indices, name);
-      }
+      });
 
-      function startFixedRandomSession(size) {
-        const indices = questions.map((_, idx) => idx);
-        for (let i = indices.length - 1; i > 0; i--) {
+      /**
+       * 数组随机打乱
+       * @param {Array} array 
+       */
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
-          [indices[i], indices[j]] = [indices[j], indices[i]];
+          [array[i], array[j]] = [array[j], array[i]];
         }
-        const sessionIndices = indices.slice(0, size);
-        startPracticeSession(sessionIndices, `随机${size}题`);
-      }
-
-      function startPracticeSession(indices, name) {
-        mode = 'session';
-        sessionOrder = indices;
-        sessionSize = indices.length;
-        sessionName = name;
-        topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="exitSessionBtn">退出并保存到历史记录</button>`;
-        sessionCurrentIndex = 0;
-        sessionWrong = [];
-        showCurrentQuestion();
-      }
-
-      function endSession() {
-        const wrongCount = sessionWrong.length;
-        const attemptedCount = sessionCurrentIndex;
-        const entry = { timestamp: Date.now(), mode: sessionName, size: sessionSize, attempted: attemptedCount, wrongCount: wrongCount, wrongQuestions: sessionWrong.slice() };
-        sessionHistory.push(entry);
-        localStorage.setItem('plc1_sessionHistory', JSON.stringify(sessionHistory));
-        let summaryHtml = `<div class="session-summary"><h2>练习模式 “${sessionName}” 已结束</h2><p>作答情况：${attemptedCount} / ${sessionSize}</p><p>答错题数：${wrongCount}</p>`;
-        if (wrongCount > 0) {
-          summaryHtml += '<ul>';
-          sessionWrong.forEach(item => {
-            summaryHtml += `<li>题号${item.number}：正确答案 ${item.correctAnswer}（你的答案：${item.userAnswer}）</li>`;
-          });
-          summaryHtml += '</ul>';
-        } else if (attemptedCount > 0) {
-          summaryHtml += '<p>全部答对！</p>';
-        }
-        summaryHtml += '<button id="sessionReturnBtn">返回答题区</button> <button id="viewHistoryBtn">查看历史记录</button></div>';
-        contentEl.innerHTML = summaryHtml;
-        progressEl.textContent = '';
-        document.getElementById('sessionReturnBtn').addEventListener('click', () => {
-          mode = 'quiz';
-          restoreTopActions();
-          showCurrentQuestion();
-        });
-        document.getElementById('viewHistoryBtn').addEventListener('click', showHistory);
       }
 
       /**
-       * NEW: Rerendered showHistory function
+       * 开始刷题会话（Session Mode）
+       * @param {number} size 题目数量
+       * @param {number[]} indicesToSelectFrom 可选的题目索引
+       * @param {string} sessionName 会话名称
+       * @param {boolean} isRandom 是否随机打乱
+       * @param {boolean} isWrongbook 是否为错题本练习
+       */
+      function startSession(size, indicesToSelectFrom, sessionName, isRandom, isWrongbook) {
+        mode = 'session';
+        sessionIsWrongbook = isWrongbook;
+        let selectedIndices = [...indicesToSelectFrom];
+
+        if (isRandom) {
+            // 随机打乱并截取指定数量
+            shuffleArray(selectedIndices);
+            sessionOrder = selectedIndices.slice(0, size);
+        } else {
+            // 顺序刷题，直接按题号从小到大排序后截取
+            sessionOrder = selectedIndices.sort((a, b) => questions[a].number - questions[b].number).slice(0, size);
+        }
+
+        sessionSize = sessionOrder.length;
+        sessionCurrentIndex = 0;
+        sessionWrong = [];
+        sessionCorrectQuestions = [];
+        sessionName = sessionName || (isRandom ? `随机${sessionSize}题` : `顺序${sessionSize}题`);
+        
+        // 标记会话名称以便历史记录使用
+        sessionOrder.sessionName = sessionName; 
+
+        if (sessionSize === 0) {
+            alert('所选范围内没有找到题目，请检查范围或错题本内容。');
+            mode = isWrongbook ? 'wrong' : 'quiz';
+            showCurrentQuestion();
+            return;
+        }
+
+        showCurrentQuestion();
+      }
+
+      /**
+       * 根据题号范围开始刷题
+       * @param {boolean} isRandom 是否随机
+       */
+      function startSessionByRange(isRandom) {
+        const startNum = parseInt(startNumInput.value);
+        const endNum = parseInt(endNumInput.value);
+
+        if (isNaN(startNum) || isNaN(endNum) || startNum < 1 || endNum < 1) {
+          alert('请输入有效的起始和结束题号（大于等于 1）。');
+          return;
+        }
+
+        if (startNum > endNum) {
+          alert('起始题号不能大于结束题号。');
+          return;
+        }
+
+        // 筛选出在范围内的题目索引
+        const rangeIndices = questions.map((q, idx) => {
+          if (q.number >= startNum && q.number <= endNum) {
+            return idx; // 返回题目在 questions 数组中的索引
+          }
+          return -1;
+        }).filter(idx => idx !== -1);
+        
+        const sessionName = `区间(${startNum}-${endNum})${isRandom ? '随机' : '顺序'}刷题`;
+        startSession(rangeIndices.length, rangeIndices, sessionName, isRandom, false);
+      }
+
+      /**
+       * 完成刷题会话后的统计和处理
+       */
+      function endSession() {
+        const wrongCount = sessionWrong.length;
+        const correctCount = sessionSize - wrongCount;
+        const sessionName = sessionOrder.sessionName || '刷题练习';
+
+        // 1. 保存历史记录
+        const entry = {
+          timestamp: Date.now(),
+          name: sessionName, // 记录会话名称
+          size: sessionSize,
+          wrongCount: wrongCount,
+          wrongQuestions: sessionWrong.slice()
+        };
+        sessionHistory.push(entry);
+        localStorage.setItem('plc1_sessionHistory', JSON.stringify(sessionHistory));
+
+        // 2. 显示总结
+        let summaryHtml = '<div class="session-summary">';
+        summaryHtml += `<h2>“${sessionName}”已完成</h2>`;
+        summaryHtml += `<p>答对题数：${correctCount} / ${sessionSize}</p>`;
+        summaryHtml += `<p>答错题数：${wrongCount} / ${sessionSize}</p>`;
+        
+        // 3. 错题本练习完成后的特殊提示：使用新的 session-actions 容器
+        if (sessionIsWrongbook && correctCount > 0) {
+            summaryHtml += '<hr>';
+            summaryHtml += '<p>本次练习中，您答对了以下题目，是否将它们从错题本中移除？</p>';
+            summaryHtml += '<div class="session-actions">';
+            summaryHtml += `<button id="clearWrongBtn">从错题本移除 (${correctCount} 题)</button>`;
+            summaryHtml += `<button id="keepWrongBtn">保留在错题本</button>`;
+            summaryHtml += '</div>';
+        }
+
+        if (wrongCount > 0) {
+          summaryHtml += '<p>错误详情请查看历史记录。</p>';
+        }
+        summaryHtml += '<hr>';
+        summaryHtml += '<div class="session-actions">'; // 使用相同的容器，便于排版
+        summaryHtml += '<button id="sessionReturnBtn">返回答题区</button>';
+        summaryHtml += '<button id="viewHistoryBtn">查看历史记录</button>';
+        summaryHtml += '</div>';
+        summaryHtml += '</div>';
+        contentEl.innerHTML = summaryHtml;
+        progressEl.textContent = '';
+        
+        // 4. 绑定事件
+        document.getElementById('sessionReturnBtn').addEventListener('click', () => {
+          mode = 'quiz';
+          showCurrentQuestion();
+        });
+        document.getElementById('viewHistoryBtn').addEventListener('click', () => {
+          showHistory();
+        });
+
+        if (sessionIsWrongbook && correctCount > 0) {
+             document.getElementById('clearWrongBtn').addEventListener('click', () => {
+                clearCorrectlyAnsweredWrongQuestions();
+             });
+             document.getElementById('keepWrongBtn').addEventListener('click', () => {
+                mode = 'quiz';
+                showCurrentQuestion();
+             });
+        }
+      }
+
+      /**
+       * 从错题本中移除本次答对的题目
+       */
+      function clearCorrectlyAnsweredWrongQuestions() {
+          let clearedCount = 0;
+          sessionCorrectQuestions.forEach(qIndex => {
+              const qNumber = questions[qIndex].number;
+              if (wrongCounts[qNumber] > 0) {
+                  delete wrongCounts[qNumber]; // 完全移除该题号的记录
+                  clearedCount++;
+              }
+          });
+          localStorage.setItem('plc1_wrongCounts', JSON.stringify(wrongCounts));
+          alert(`成功从错题本中移除了 ${clearedCount} 道题目。`);
+          updateWrongOrder(); // 更新错题列表
+          mode = 'quiz';
+          showCurrentQuestion();
+      }
+
+      /**
+       * 显示历史记录 (History Mode)
        */
       function showHistory() {
         mode = 'history';
         sessionHistory = JSON.parse(localStorage.getItem('plc1_sessionHistory') || '[]');
-        topActionsEl.innerHTML = `<span>历史记录</span>`;
-        progressEl.textContent = '';
-        
-        let html = '<div class="history-container">';
-        
+        tabQuizBtn.classList.remove('active');
+        tabWrongBtn.classList.remove('active');
+
         if (!sessionHistory.length) {
-          html += '<p>暂无刷题历史记录</p>';
-        } else {
-          html += `<div class="history-header"><h2>刷题历史记录</h2><button id="clearHistoryBtn" class="delete-btn">清除所有记录</button></div>`;
-          sessionHistory.slice().reverse().forEach((entry, idx) => {
-            const originalIndex = sessionHistory.length - 1 - idx;
-            const date = new Date(entry.timestamp);
-            const dateStr = date.toLocaleString('zh-CN');
-            const attemptedText = entry.attempted !== undefined ? `答${entry.attempted}题` : '';
-            const resultText = `错${entry.wrongCount}题`;
-
-            html += `
-              <div class="history-entry">
-                <details>
-                  <summary>
-                    <div class="summary-info">
-                      <span class="info-main">${entry.mode}</span>
-                      <span class="info-sub">${dateStr} | ${attemptedText} | ${resultText}</span>
-                    </div>
-                    <button class="delete-btn delete-single-btn" data-index="${originalIndex}">删除</button>
-                  </summary>
-                  <div class="history-details">`;
-            
-            if (entry.wrongCount > 0) {
-              html += '<ul>';
-              entry.wrongQuestions.forEach(item => {
-                html += `<li>题号${item.number}：正确答案 ${item.correctAnswer}（你的答案：${item.userAnswer}）</li>`;
-              });
-              html += '</ul>';
-            } else if (entry.attempted > 0) {
-              html += '<p>全部答对！</p>';
-            } else {
-              html += '<p>未作答题目。</p>';
-            }
-            html += '</div></details></div>';
+          contentEl.innerHTML = '<p>暂无刷题历史记录</p><button id="historyBackBtn">返回答题区</button>';
+          progressEl.textContent = '';
+          document.getElementById('historyBackBtn').addEventListener('click', () => {
+            mode = 'quiz';
+            showCurrentQuestion();
           });
+          return;
         }
-        html += '<button id="historyBackBtn">返回答题区</button></div>';
-        contentEl.innerHTML = html;
 
-        // Add event listeners for new buttons
-        const historyContainer = contentEl.querySelector('.history-container');
-        if (historyContainer) {
-            historyContainer.addEventListener('click', function(event) {
-                // Handle single delete
-                if (event.target.classList.contains('delete-single-btn')) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const indexToDelete = parseInt(event.target.dataset.index, 10);
-                    if (confirm('您确定要删除这条记录吗？')) {
-                        sessionHistory.splice(indexToDelete, 1);
-                        localStorage.setItem('plc1_sessionHistory', JSON.stringify(sessionHistory));
-                        showHistory(); // Refresh view
-                    }
-                }
-                // Handle clear all
-                if (event.target.id === 'clearHistoryBtn') {
-                    if (confirm('您确定要清除所有历史记录吗？此操作无法撤销。')) {
-                        sessionHistory = [];
-                        localStorage.removeItem('plc1_sessionHistory');
-                        showHistory(); // Refresh view
-                    }
-                }
+        let html = '<div class="history-list">';
+        html += '<h2>刷题历史记录</h2>';
+        // 历史记录倒序显示
+        [...sessionHistory].reverse().forEach((entry, idx) => {
+          const originalIndex = sessionHistory.length - 1 - idx;
+          const date = new Date(entry.timestamp);
+          const dateStr = date.toLocaleString('zh-CN');
+          const name = entry.name || `第${originalIndex + 1}次练习`;
+          
+          html += `<details><summary>${name} - ${dateStr} - ${entry.size}题，错${entry.wrongCount}题</summary>`;
+          if (entry.wrongCount > 0) {
+            html += '<ul>';
+            entry.wrongQuestions.forEach(item => {
+              html += `<li>题号${item.number}：正确答案 ${item.correctAnswer}`;
+              if (item.userAnswer && item.userAnswer !== item.correctAnswer) {
+                html += `（你的答案：${item.userAnswer}）`;
+              }
+              html += '</li>';
             });
-        }
-        
+            html += '</ul>';
+          } else {
+            html += '<p>全部答对！</p>';
+          }
+          html += '</details>';
+        });
+        html += '<button id="historyBackBtn">返回答题区</button>';
+        html += '</div>';
+        contentEl.innerHTML = html;
+        progressEl.textContent = '';
+
         document.getElementById('historyBackBtn').addEventListener('click', () => {
           mode = 'quiz';
-          restoreTopActions();
           showCurrentQuestion();
         });
       }
 
+      /**
+       * 显示当前题目
+       */
       function showCurrentQuestion() {
-        let qIndex;
-        if (mode === 'quiz') {
-          if (order.length === 0) return;
-          currentIndex = Math.max(0, Math.min(currentIndex, order.length - 1));
-          qIndex = order[currentIndex];
-        } else if (mode === 'wrong') {
-          updateWrongOrder();
-          if (wrongOrder.length === 0) {
-            contentEl.innerHTML = '<p>没有错题～</p>';
-            progressEl.textContent = '';
-            return;
-          }
-          wrongIndex = Math.max(0, Math.min(wrongIndex, wrongOrder.length - 1));
-          qIndex = wrongOrder[wrongIndex];
-        } else if (mode === 'session') {
-          if (sessionCurrentIndex >= sessionOrder.length) {
-            endSession();
-            return;
-          }
-          qIndex = sessionOrder[sessionCurrentIndex];
-        } else {
-          return;
-        }
-        const q = questions[qIndex];
-        let total, currentPos;
-        if (mode === 'quiz') { total = order.length; currentPos = currentIndex + 1; }
-        else if (mode === 'wrong') { total = wrongOrder.length; currentPos = wrongIndex + 1; }
-        else if (mode === 'session') { total = sessionOrder.length; currentPos = sessionCurrentIndex + 1; }
+        let currentOrder, currentIdx, total;
         
+        // 更新 Tab 样式
+        tabQuizBtn.classList.remove('active');
+        tabWrongBtn.classList.remove('active');
+        if (mode === 'quiz') {
+            tabQuizBtn.classList.add('active');
+            currentOrder = order;
+            currentIdx = currentIndex;
+        } else if (mode === 'wrong') {
+            updateWrongOrder();
+            if (wrongOrder.length === 0) {
+                contentEl.innerHTML = '<p>没有错题～</p>';
+                progressEl.textContent = '';
+                return;
+            }
+            tabWrongBtn.classList.add('active');
+            currentOrder = wrongOrder;
+            currentIdx = wrongIndex;
+        } else if (mode === 'session') {
+            currentOrder = sessionOrder;
+            currentIdx = sessionCurrentIndex;
+        } else {
+            return; // 历史记录模式不显示题目
+        }
+
+        // 边界检查
+        if (currentOrder.length === 0) return;
+        if (currentIdx < 0) currentIdx = 0;
+        if (currentIdx >= currentOrder.length) {
+            if (mode === 'session') {
+                endSession();
+                return;
+            }
+            currentIdx = 0;
+        }
+
+        // 确定题目索引和进度
+        const qIndex = currentOrder[currentIdx];
+        const q = questions[qIndex];
+        
+        total = currentOrder.length;
+        currentPos = currentIdx + 1;
+        
+        // 实时更新对应的索引变量
+        if (mode === 'quiz') { currentIndex = currentIdx; }
+        else if (mode === 'wrong') { wrongIndex = currentIdx; }
+        else if (mode === 'session') { sessionCurrentIndex = currentIdx; }
+
+        // 显示进度
         const displayType = (q.options.length === 0) ? '判断' : q.type;
         progressEl.textContent = `【${displayType}】【${currentPos}/${total}】`;
-        wrongCounts = JSON.parse(localStorage.getItem('plc1_wrongCounts') || '{}');
+
+        // 构建 HTML
         const wrongCount = wrongCounts[q.number] || 0;
-        let html = `<div class="question-container"><div class="question-header">${wrongCount > 0 ? `<span class="badge">已错 ${wrongCount} 次</span>` : ''}<span>${q.question}</span></div><div class="options">`;
+        let html = '<div class="question-container">';
+        html += '<div class="question-header">';
+        if (wrongCount > 0) {
+          html += `<span class="badge">已错 ${wrongCount} 次</span>`;
+        }
+        html += `<span>${q.question}</span>`;
+        html += '</div>';
+        html += '<div class="options">';
         let inputType;
+        let optionsList;
         if (q.options.length === 0) {
           inputType = 'radio';
-          [{ value: 'T', label: '正确' }, { value: 'F', label: '错误' }].forEach(opt => {
-            html += `<div class="option"><label><input type="${inputType}" name="answer" value="${opt.value}"> ${opt.label}</label></div>`;
-          });
+          optionsList = [
+            { value: 'T', label: '正确' },
+            { value: 'F', label: '错误' }
+          ];
         } else {
           inputType = (q.type === '多选') ? 'checkbox' : 'radio';
-          q.options.forEach(opt => {
-            let text = (opt.text || '').trim() || '（空）';
-            html += `<div class="option"><label><input type="${inputType}" name="answer" value="${opt.label}"> ${opt.label}、${text}</label></div>`;
+          optionsList = q.options.map(opt => {
+            let text = (opt.text || '').trim();
+            if (!text) {
+              text = '（空）';
+            }
+            return { value: opt.label, label: `${opt.label}、${text}` };
           });
         }
-        html += `</div><div class="buttons"><button id="submitBtn">提交答案</button><button id="retryBtn" class="hidden">再试一次</button><button id="nextBtn" class="hidden">下一题</button><button id="removeWrongBtn" class="hidden">从错题本中移除</button></div><div id="feedback" class="feedback"></div></div>`;
+        optionsList.forEach(opt => {
+          html += `<div class="option"><label><input type="${inputType}" name="answer" value="${opt.value}"> ${opt.label}</label></div>`;
+        });
+        html += '</div>';
+        html += '<div class="buttons">';
+        // 新增上一题按钮
+        html += `<button id="prevBtn" ${currentIdx === 0 ? 'disabled' : ''}>上一题</button>`;
+        html += '<button id="submitBtn">提交答案</button>';
+        html += '<button id="retryBtn" class="hidden">再试一次</button>';
+        html += '<button id="nextBtn" class="hidden">下一题</button>';
+        html += '</div>';
+        html += '<div id="feedback" class="feedback"></div>';
+        html += '</div>';
         contentEl.innerHTML = html;
-        const submitBtn = document.getElementById('submitBtn'), retryBtn = document.getElementById('retryBtn'), nextBtn = document.getElementById('nextBtn'), removeWrongBtn = document.getElementById('removeWrongBtn');
-        
-        submitBtn.addEventListener('click', () => handleSubmit(q, inputType, submitBtn, retryBtn, nextBtn, removeWrongBtn));
-        retryBtn.addEventListener('click', showCurrentQuestion);
+
+        // 绑定事件
+        const prevBtn = document.getElementById('prevBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const retryBtn = document.getElementById('retryBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const feedbackEl = document.getElementById('feedback');
+
+        // 上一题功能
+        prevBtn.addEventListener('click', () => {
+            if (mode === 'quiz') { currentIndex--; }
+            else if (mode === 'wrong') { wrongIndex--; }
+            else if (mode === 'session') { sessionCurrentIndex--; }
+            showCurrentQuestion();
+        });
+
+        submitBtn.addEventListener('click', () => {
+          handleSubmit(q, qIndex, inputType, submitBtn, retryBtn, nextBtn, feedbackEl, prevBtn);
+        });
+        retryBtn.addEventListener('click', () => { 
+            // 重新显示当前题，以清除用户答案和反馈
+            showCurrentQuestion(); 
+        });
         nextBtn.addEventListener('click', () => {
-          if (mode === 'quiz') { currentIndex++; if (currentIndex >= order.length) currentIndex = 0; }
-          else if (mode === 'wrong') { wrongIndex++; if (wrongIndex >= wrongOrder.length) wrongIndex = 0; }
+          if (mode === 'quiz') { currentIndex++; }
+          else if (mode === 'wrong') { wrongIndex++; }
           else if (mode === 'session') { sessionCurrentIndex++; }
           showCurrentQuestion();
         });
-        removeWrongBtn.addEventListener('click', () => {
-          delete wrongCounts[q.number];
-          localStorage.setItem('plc1_wrongCounts', JSON.stringify(wrongCounts));
-          removeWrongBtn.textContent = '已移除';
-          removeWrongBtn.disabled = true;
-        });
       }
 
-      function handleSubmit(q, inputType, submitBtn, retryBtn, nextBtn, removeWrongBtn) {
+      /**
+       * 提交答案处理
+       */
+      function handleSubmit(q, qIndex, inputType, submitBtn, retryBtn, nextBtn, feedbackEl, prevBtn) {
         const selected = Array.from(contentEl.querySelectorAll('input[name="answer"]:checked'));
-        if (selected.length === 0) { alert('请选择答案后再提交'); return; }
+        if (selected.length === 0) {
+          alert('请选择答案后再提交');
+          return;
+        }
         const userAnswers = selected.map(el => el.value).sort();
         let correct = false;
         let correctDisplay;
         if (q.options.length === 0) {
+          // 判断题
           const isTrueAnswer = !q.answer.some(ans => ans.trim().includes('错') || ans.trim().includes('误'));
           const expected = isTrueAnswer ? 'T' : 'F';
           correct = (userAnswers.length === 1 && userAnswers[0] === expected);
@@ -425,30 +657,48 @@
           correct = (userAnswers.length === correctAnswers.length && userAnswers.every((v, i) => v === correctAnswers[i]));
           correctDisplay = q.answer.join('');
         }
+        
+        // 禁用提交按钮和选项
         submitBtn.disabled = true;
-        const feedbackEl = document.getElementById('feedback');
+        contentEl.querySelectorAll('input[name="answer"]').forEach(input => input.disabled = true);
+        
+        // 记录会话结果
+        if (mode === 'session') {
+            if (correct) {
+                // 记录答对的题目索引，用于错题本清除
+                sessionCorrectQuestions.push(qIndex); 
+            } else {
+                // 记录答错的题目，用于历史记录
+                sessionWrong.push({
+                    number: q.number,
+                    correctAnswer: correctDisplay,
+                    userAnswer: userAnswers.join('')
+                });
+            }
+        }
+
+        // 显示反馈
         if (correct) {
           feedbackEl.textContent = '回答正确！';
           feedbackEl.className = 'feedback correct';
-          nextBtn.classList.remove('hidden');
-          retryBtn.classList.add('hidden');
-          if (mode === 'wrong') {
-            removeWrongBtn.classList.remove('hidden');
-          }
         } else {
-          wrongCounts[q.number] = (wrongCounts[q.number] || 0) + 1;
-          localStorage.setItem('plc1_wrongCounts', JSON.stringify(wrongCounts));
+          // 只有在非会话模式下才更新错题本统计，因为会话模式会统一处理
+          if (mode !== 'session') {
+            wrongCounts[q.number] = (wrongCounts[q.number] || 0) + 1;
+            localStorage.setItem('plc1_wrongCounts', JSON.stringify(wrongCounts));
+          }
           feedbackEl.textContent = '回答错误！正确答案：' + correctDisplay;
           feedbackEl.className = 'feedback incorrect';
           retryBtn.classList.remove('hidden');
-          nextBtn.classList.remove('hidden');
-          if (mode === 'session' && !sessionWrong.some(item => item.number === q.number)) {
-            sessionWrong.push({ number: q.number, correctAnswer: correctDisplay, userAnswer: userAnswers.join('') });
-          }
         }
+        
+        // 显示下一步和上一题按钮（上一题按钮始终可见但可能被禁用）
+        nextBtn.classList.remove('hidden');
+        // 解除上一题按钮的禁用状态，允许在查看答案后返回
+        prevBtn.disabled = false;
       }
-      // 初始化
-      restoreTopActions();
+      
+      // 首次加载
       showCurrentQuestion();
     })();
   </script>
