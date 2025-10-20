@@ -43,6 +43,30 @@
     .buttons button:last-child { margin-right: 0; }
     .buttons button:hover { opacity: 0.9; }
 
+    /* NEW: Update list styles */
+    #update-area {
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      padding: 12px 16px;
+      margin: 12px auto;
+      max-width: 800px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    #update-area.hidden {
+      display: none;
+    }
+    #update-area h3 {
+      margin-top: 0;
+    }
+    #update-area ul {
+      padding-left: 20px;
+      margin: 8px 0 0 0;
+    }
+    #update-area ul li {
+      line-height: 1.6;
+    }
+
     /* --- NEW: History Page Styles --- */
     .history-container { max-width: 800px; margin: 0 auto; }
     .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -73,6 +97,16 @@
   </nav>
   <div id="top-actions">
     </div>
+  <!-- NEW: Updates list that appears only on the home page -->
+  <div id="update-area">
+    <h3>最近更新动态</h3>
+    <ul>
+      <li>历史记录可以继续之前未完成的答题任务</li>
+      <li>主页移除了答题区域</li>
+      <li>增加自定义区间顺序乱序答题</li>
+      <li>增加上一题功能</li>
+    </ul>
+  </div>
   <div id="signature-area">
     <p>vyen</p>
     <img src="https://youke1.picui.cn/s1/2025/10/04/68e0e8a9ae986.jpg" alt="二维码">
@@ -104,6 +138,7 @@
       const tabQuizBtn = document.getElementById('tabQuiz');
       const tabWrongBtn = document.getElementById('tabWrong');
       const topActionsEl = document.getElementById('top-actions');
+      const updateArea = document.getElementById('update-area');
       
       // Original top actions for starting different practice modes. A new “完整刷题” button is added for sequential practice through the entire question bank.
       const originalTopActionsHTML = `
@@ -133,6 +168,10 @@
 
       function restoreTopActions() {
         topActionsEl.innerHTML = originalTopActionsHTML;
+        // Show the update list when returning to the home page
+        if (updateArea) {
+          updateArea.classList.remove('hidden');
+        }
       }
       
       topActionsEl.addEventListener('click', (event) => {
@@ -167,6 +206,10 @@
           tabQuizBtn.classList.add('active');
           tabWrongBtn.classList.remove('active');
           contentEl.classList.remove('hidden');
+          // Hide update list during an active session
+          if (updateArea) {
+            updateArea.classList.add('hidden');
+          }
           showCurrentQuestion();
         } else {
           // If no active session, switch to quiz tab normally
@@ -175,6 +218,10 @@
             tabQuizBtn.classList.add('active');
             tabWrongBtn.classList.remove('active');
             restoreTopActions();
+            // Show update list on home page
+            if (updateArea) {
+              updateArea.classList.remove('hidden');
+            }
             // Hide content when switching back to quiz area until a new session is started
             contentEl.classList.add('hidden');
             contentEl.innerHTML = '';
@@ -201,6 +248,10 @@
           tabQuizBtn.classList.remove('active');
           // Keep the current session header and exit button visible
           topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="exitSessionBtn">退出并保存到历史记录</button>`;
+          // Hide update list while in wrong mode
+          if (updateArea) {
+            updateArea.classList.add('hidden');
+          }
           // Show wrong questions
           updateWrongOrder();
           wrongIndex = 0;
@@ -213,6 +264,10 @@
             tabWrongBtn.classList.add('active');
             tabQuizBtn.classList.remove('active');
             restoreTopActions();
+            // Hide update list while viewing wrong mode
+            if (updateArea) {
+              updateArea.classList.add('hidden');
+            }
             // Show wrong questions immediately
             updateWrongOrder();
             wrongIndex = 0;
@@ -344,6 +399,10 @@
         sessionSize = indices.length;
         sessionName = name;
         topActionsEl.innerHTML = `<span>当前模式: ${sessionName}</span><button id="exitSessionBtn">退出并保存到历史记录</button>`;
+        // Hide updates during an active session
+        if (updateArea) {
+          updateArea.classList.add('hidden');
+        }
         sessionCurrentIndex = 0;
         sessionWrong = [];
         // Show the content area and render the first question
@@ -406,6 +465,11 @@
         sessionHistory = JSON.parse(localStorage.getItem('plc1_sessionHistory') || '[]');
         topActionsEl.innerHTML = `<span>历史记录</span>`;
         progressEl.textContent = '';
+
+        // Hide update list when viewing history
+        if (updateArea) {
+          updateArea.classList.add('hidden');
+        }
         
         let html = '<div class="history-container">';
         
@@ -549,9 +613,9 @@
             html += `<div class="option"><label><input type="${inputType}" name="answer" value="${opt.label}"> ${opt.label}、${text}</label></div>`;
           });
         }
-        html += `</div><div class="buttons"><button id="submitBtn">提交答案</button><button id="retryBtn" class="hidden">再试一次</button><button id="nextBtn" class="hidden">下一题</button><button id="removeWrongBtn" class="hidden">从错题本中移除</button></div><div id="feedback" class="feedback"></div></div>`;
+        html += `</div><div class="buttons"><button id="submitBtn">提交答案</button><button id="retryBtn" class="hidden">再试一次</button><button id="prevBtn" class="hidden">上一题</button><button id="nextBtn" class="hidden">下一题</button><button id="removeWrongBtn" class="hidden">从错题本中移除</button></div><div id="feedback" class="feedback"></div></div>`;
         contentEl.innerHTML = html;
-        const submitBtn = document.getElementById('submitBtn'), retryBtn = document.getElementById('retryBtn'), nextBtn = document.getElementById('nextBtn'), removeWrongBtn = document.getElementById('removeWrongBtn');
+        const submitBtn = document.getElementById('submitBtn'), retryBtn = document.getElementById('retryBtn'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), removeWrongBtn = document.getElementById('removeWrongBtn');
         
         submitBtn.addEventListener('click', () => handleSubmit(q, inputType, submitBtn, retryBtn, nextBtn, removeWrongBtn));
         retryBtn.addEventListener('click', showCurrentQuestion);
@@ -582,6 +646,40 @@
           removeWrongBtn.textContent = '已移除';
           removeWrongBtn.disabled = true;
         });
+
+        // Handle previous question navigation
+        if (prevBtn) {
+          prevBtn.addEventListener('click', () => {
+            if (mode === 'quiz') {
+              if (currentIndex > 0) {
+                currentIndex--;
+              }
+            } else if (mode === 'wrong') {
+              if (wrongIndex > 0) {
+                wrongIndex--;
+              }
+            } else if (mode === 'session') {
+              if (sessionCurrentIndex > 0) {
+                sessionCurrentIndex--;
+              }
+            }
+            showCurrentQuestion();
+          });
+          // Show or hide previous button based on current position
+          let showPrev = false;
+          if (mode === 'quiz') {
+            showPrev = (currentIndex > 0);
+          } else if (mode === 'wrong') {
+            showPrev = (wrongIndex > 0);
+          } else if (mode === 'session') {
+            showPrev = (sessionCurrentIndex > 0);
+          }
+          if (showPrev) {
+            prevBtn.classList.remove('hidden');
+          } else {
+            prevBtn.classList.add('hidden');
+          }
+        }
       }
 
       function handleSubmit(q, inputType, submitBtn, retryBtn, nextBtn, removeWrongBtn) {
